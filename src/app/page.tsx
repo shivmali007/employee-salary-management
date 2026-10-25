@@ -283,9 +283,15 @@ export default function HRDashboard() {
                   <td className="px-6 py-4 font-medium text-blue-600">{emp.name}</td>
                   <td className="px-6 py-4 text-gray-500">{emp.email}</td>
                   <td className="px-6 py-4 text-gray-500">{emp.phone}</td>
-                  <td className="px-6 py-4"><span className="px-2 py-1 bg-gray-100 rounded text-xs">{emp.department}</span></td>
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-1 bg-gray-100 rounded text-xs font-semibold text-[#1F2937] text-[14px] sm:text-[15px]">
+                      {emp.department}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 text-gray-600">{emp.country}</td>
-                  <td className="px-6 py-4 text-right font-mono font-semibold">${emp.salary.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-right font-mono font-semibold text-[#111827] text-[14px] sm:text-[15px]">
+                    ${emp.salary.toLocaleString()}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
                       <button
