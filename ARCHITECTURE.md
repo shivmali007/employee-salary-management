@@ -9,7 +9,7 @@ graph TD
     subgraph Client_Layer [Frontend - Next.js 15 App Router]
         UI[HR Dashboard] -->|Fetch Analytics| API_A[api/analytics]
         UI -->|Fetch Employees| API_E[api/employees]
-        UI -->|Update/Delete| API_ID[api/employees/[id]]
+        UI -->|"Update/Delete"| API_ID["api/employees/[id]"]
         
         subgraph Components
             KPI[KPI Cards]
