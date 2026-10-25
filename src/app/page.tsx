@@ -1,69 +1,215 @@
-import Image from "next/image";
+"use client";
+import React, { useEffect, useState } from 'react';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell
+} from 'recharts';
+import { Users, DollarSign, Globe, Building2, Search, Edit2, Trash2 } from 'lucide-react';
 
-export default function Home() {
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#ef4444'];
+
+export default function HRDashboard() {
+  const [summary, setSummary] = useState<any>(null);
+  const [countryData, setCountryData] = useState<any[]>([]);
+  const [deptData, setDeptData] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [pagination, setPagination] = useState<any>(null);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAnalytics();
+    fetchEmployees();
+  }, []);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, [search, page]);
+
+  async function fetchAnalytics() {
+    const res = await fetch('/api/analytics');
+    const data = await res.json();
+    setSummary(data.summary);
+    setCountryData(data.countryDistribution);
+    setDeptData(data.deptDistribution);
+  }
+
+  async function fetchEmployees() {
+    setLoading(true);
+    const res = await fetch(`/api/employees?page=${page}&search=${search}`);
+    const data = await res.json();
+    setEmployees(data.employees);
+    setPagination(data.pagination);
+    setLoading(false);
+  }
+
+  if (!summary) return <div className="flex items-center justify-center h-screen">Loading Dashboard...</div>;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-gray-50 p-6 space-y-8">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">ACME HR Portal</h1>
+          <p className="text-gray-500">Salary Management for 10,000 Employees</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+        <div className="bg-white px-4 py-2 rounded-lg shadow-sm border flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-600">System Status:</span>
+          <span className="text-sm font-bold text-green-600">Live</span>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card icon={<DollarSign className="text-blue-600" />} label="Total Payroll" value={`$${summary.totalPayroll.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
+        <Card icon={<Users className="text-green-600" />} label="Total Employees" value={summary.totalEmployees.toLocaleString()} />
+        <Card icon={<Globe className="text-purple-600" />} label="Avg. Salary" value={`$${summary.avgSalary.toLocaleString(undefined, { maximumFractionDigits: 2 })}`} />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white p-6 rounded-xl shadow-sm border">
+          <div className="flex items-center gap-2 mb-6">
+            <Globe className="w-5 h-5 text-gray-500" />
+            <h2 className="text-lg font-semibold">Salary by Country</h2>
+          </div>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={countryData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="country" />
+                <YAxis />
+                <Tooltip formatter={(value: number) => `$${value.toLocaleString()}`} />
+                <Bar dataKey="_sum.salary" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border">
+          <div className="flex items-center gap-2 mb-6">
+            <Building2 className="w-5 h-5 text-gray-500" />
+            <h2 className="text-lg font-semibold">Departmental Split</h2>
+          </div>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={deptData}
+                  dataKey="_sum.salary"
+                  nameKey="department"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                >
+                  {deptData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value: number) => `$${value.toLocaleString()}`} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex flex-wrap justify-center gap-4 mt-4">
+              {deptData.map((d: any, i: number) => (
+                <div key={d.department} className="flex items-center gap-1 text-xs text-gray-600">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                  {d.department}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Employee Table */}
+      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+        <div className="p-6 border-b flex flex-col md:flex-row justify-between items-center gap-4">
+          <h2 className="text-lg font-semibold">Employee Directory</h2>
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name, email, dept..."
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
         </div>
-      </main>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-gray-50 text-gray-600 font-medium">
+              <tr>
+                <th className="px-6 py-3">Name</th>
+                <th className="px-6 py-3">Email</th>
+                <th className="px-6 py-3">Department</th>
+                <th className="px-6 py-3">Country</th>
+                <th className="px-6 py-3 text-right">Salary</th>
+                <th className="px-6 py-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {loading ? (
+                <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-500">Loading employees...</td></tr>
+              ) : employees.map((emp) => (
+                <tr key={emp.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 font-medium text-gray-900">{emp.name}</td>
+                  <td className="px-6 py-4 text-gray-500">{emp.email}</td>
+                  <td className="px-6 py-4"><span className="px-2 py-1 bg-gray-100 rounded text-xs">{emp.department}</span></td>
+                  <td className="px-6 py-4 text-gray-600">{emp.country}</td>
+                  <td className="px-6 py-4 text-right font-mono font-semibold">${emp.salary.toLocaleString()}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex justify-center gap-2">
+                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Salary">
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Employee">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="p-4 border-t flex justify-between items-center bg-gray-50">
+          <span className="text-xs text-gray-500">
+            Page {page} of {pagination?.totalPages || 1} ({pagination?.total || 0} employees)
+          </span>
+          <div className="flex gap-2">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(p => p - 1)}
+              className="px-3 py-1 text-xs border rounded bg-white disabled:opacity-50 hover:bg-gray-100"
+            >
+              Previous
+            </button>
+            <button
+              disabled={page === pagination?.totalPages}
+              onClick={() => setPage(p => p + 1)}
+              className="px-3 py-1 text-xs border rounded bg-white disabled:opacity-50 hover:bg-gray-100"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Card({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-sm border flex items-center gap-4">
+      <div className="p-3 bg-gray-50 rounded-lg">{icon}</div>
+      <div>
+        <p className="text-sm text-gray-500 font-medium">{label}</p>
+        <p className="text-2xl font-bold text-gray-900">{value}</p>
+      </div>
     </div>
   );
 }
