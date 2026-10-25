@@ -5,6 +5,7 @@ import {
   PieChart, Pie, Cell
 } from 'recharts';
 import { Users, DollarSign, Globe, Building2, Search, Edit2, Trash2 } from 'lucide-react';
+import EditEmployeeModal from '@/components/EditEmployeeModal';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#ef4444'];
 
@@ -17,6 +18,7 @@ export default function HRDashboard() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [editingEmployee, setEditingEmployee] = useState<any>(null);
 
   useEffect(() => {
     fetchAnalytics();
@@ -145,6 +147,7 @@ export default function HRDashboard() {
               <tr>
                 <th className="px-6 py-3">Name</th>
                 <th className="px-6 py-3">Email</th>
+                <th className="px-6 py-3">Phone</th>
                 <th className="px-6 py-3">Department</th>
                 <th className="px-6 py-3">Country</th>
                 <th className="px-6 py-3 text-right">Salary</th>
@@ -158,15 +161,29 @@ export default function HRDashboard() {
                 <tr key={emp.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-gray-900">{emp.name}</td>
                   <td className="px-6 py-4 text-gray-500">{emp.email}</td>
+                  <td className="px-6 py-4 text-gray-500">{emp.phone}</td>
                   <td className="px-6 py-4"><span className="px-2 py-1 bg-gray-100 rounded text-xs">{emp.department}</span></td>
                   <td className="px-6 py-4 text-gray-600">{emp.country}</td>
                   <td className="px-6 py-4 text-right font-mono font-semibold">${emp.salary.toLocaleString()}</td>
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Salary">
+                      <button
+                        onClick={() => setEditingEmployee(emp)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Edit Salary"
+                      >
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Employee">
+                      <button
+                        onClick={async () => {
+                          if (confirm('Are you sure you want to delete this employee?')) {
+                            await fetch(`/api/employees/${emp.id}`, { method: 'DELETE' });
+                            fetchEmployees();
+                          }
+                        }}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete Employee"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -198,6 +215,21 @@ export default function HRDashboard() {
           </div>
         </div>
       </div>
+
+      {editingEmployee && (
+        <EditEmployeeModal
+          employee={editingEmployee}
+          onClose={() => setEditingEmployee(null)}
+          onSave={async (updatedData) => {
+            await fetch(`/api/employees/${editingEmployee.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updatedData),
+            });
+            fetchEmployees();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -210,6 +242,21 @@ function Card({ icon, label, value }: { icon: React.ReactNode, label: string, va
         <p className="text-sm text-gray-500 font-medium">{label}</p>
         <p className="text-2xl font-bold text-gray-900">{value}</p>
       </div>
+
+      {editingEmployee && (
+        <EditEmployeeModal
+          employee={editingEmployee}
+          onClose={() => setEditingEmployee(null)}
+          onSave={async (updatedData) => {
+            await fetch(`/api/employees/${editingEmployee.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updatedData),
+            });
+            fetchEmployees();
+          }}
+        />
+      )}
     </div>
   );
 }

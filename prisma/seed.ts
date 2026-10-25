@@ -26,6 +26,7 @@ async function main() {
     employees.push({
       name: faker.person.fullName(),
       email: faker.internet.email({ firstName: faker.person.firstName(), lastName: faker.person.lastName(), provider: 'acme.com' }).toLowerCase() + Math.random(),
+      phone: faker.phone.number(),
       department: departments[Math.floor(Math.random() * departments.length)],
       country: country.name,
       currency: country.currency,
