@@ -8,11 +8,11 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = params.id;
+    const { id: resolvedId } = await params;
     const body = await request.json();
 
     const updatedEmployee = await prisma.employee.update({
-      where: { id },
+      where: { id: resolvedId },
       data: body,
     });
 
@@ -29,11 +29,17 @@ export async function DELETE(
 ) {
   try {
     const id = params.id;
+
+    // In Next.js 15, params is a Promise and needs to be awaited
+    // This is likely why the ID was undefined in the previous calls
+    const { id: resolvedId } = await params;
+
     await prisma.employee.delete({
-      where: { id },
+      where: { id: resolvedId },
     });
     return NextResponse.json({ message: 'Employee deleted successfully' });
   } catch (error) {
+    console.error('Delete Error:', error);
     return NextResponse.json({ error: 'Delete failed' }, { status: 400 });
   }
 }

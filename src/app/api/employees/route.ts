@@ -9,20 +9,34 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '50');
   const search = searchParams.get('search') || '';
+  const country = searchParams.get('country') || '';
+  const department = searchParams.get('department') || '';
 
   const skip = (page - 1) * limit;
 
   try {
-    const where = search
-      ? {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { email: { contains: search, mode: 'insensitive' } },
-            { department: { contains: search, mode: 'insensitive' } },
-            { country: { contains: search, mode: 'insensitive' } },
-          ],
-        }
-      : {};
+    const where: any = {
+      AND: []
+    };
+
+    if (search) {
+      where.AND.push({
+        OR: [
+          { name: { contains: search } },
+          { email: { contains: search } },
+          { department: { contains: search } },
+          { country: { contains: search } },
+        ],
+      });
+    }
+
+    if (country) {
+      where.AND.push({ country });
+    }
+
+    if (department) {
+      where.AND.push({ department });
+    }
 
     const [employees, total] = await Promise.all([
       prisma.employee.findMany({

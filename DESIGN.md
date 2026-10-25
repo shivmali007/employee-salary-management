@@ -16,6 +16,7 @@ The core entity is the `Employee`.
 | `id` | String (UUID) | Primary Key |
 | `name` | String | Employee full name |
 | `email` | String | Unique employee email |
+| `phone` | String | Employee contact number |
 | `department` | String | Department (e.g., Engineering, Sales, HR) |
 | `country` | String | Country of employment |
 | `salary` | Decimal/Float | Annual salary in local currency |
